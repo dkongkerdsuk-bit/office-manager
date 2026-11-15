@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Office Manager
 
-## Getting Started
+A web-based office management application built with Next.js 14, MongoDB, and NextAuth.
 
-First, run the development server:
+## Features
+
+- **Dashboard** - KPI cards, weekly task completion chart, recent tasks table, announcements
+- **Employees** - Live search, department filter, add/edit/delete with modal forms
+- **Tasks** - Kanban board with Todo / In Progress / Done columns
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- TailwindCSS
+- shadcn/ui components
+- MongoDB Atlas + Mongoose
+- NextAuth.js (credentials provider)
+- Recharts
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy `.env.local` and fill in your values:
+
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/office-manager
+NEXTAUTH_SECRET=<random-32-char-string>
+NEXTAUTH_URL=http://localhost:3000
+```
+
+Generate a secret: `openssl rand -base64 32`
+
+### 3. Seed the database
+
+```bash
+npx ts-node --project tsconfig.json -r dotenv/config scripts/seed.ts dotenv_config_path=.env.local
+```
+
+This creates:
+- 10 employees across Engineering, Marketing, HR
+- 15 tasks in various statuses
+- 3 announcements
+- Admin user: `admin@company.com` / `admin1234`
+
+### 4. Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Vercel (recommended)
 
-## Learn More
+1. Push to GitHub
+2. Import on [vercel.com](https://vercel.com)
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
-To learn more about Next.js, take a look at the following resources:
+### Cloudflare Pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The `next.config.mjs` has `output: 'standalone'` for standalone Node server.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For Cloudflare Pages with `@cloudflare/next-on-pages`:
 
-## Deploy on Vercel
+```bash
+npm install --save-dev @cloudflare/next-on-pages
+npx @cloudflare/next-on-pages
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Create `wrangler.toml`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```toml
+name = "office-manager"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXTAUTH_URL = "https://your-domain.pages.dev"
+```
+
+Add secrets via Cloudflare dashboard or `wrangler secret put MONGODB_URI`.
+
+> Note: NextAuth with MongoDB requires Node.js runtime. Set `export const runtime = 'nodejs'` on API routes, or use Vercel for simpler deployment.
